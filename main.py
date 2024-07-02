@@ -12,7 +12,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 
 # Construct the absolute path to the tapo.config file
 config_path = os.path.join(script_dir, 'tapo.ini')
-
+config = configparser.ConfigParser()
 try:
     with open(config_path) as f:
         config.read_file(f)
