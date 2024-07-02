@@ -7,9 +7,16 @@ import RPi.GPIO as GPIO
 from tapo import ApiClient
 from pn532 import PN532_SPI
 
+# Determine the directory where the script is located
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+# Construct the absolute path to the tapo.config file
+config_path = os.path.join(script_dir, 'tapo.ini')
+
 # Read configuration from tapo.config
 config = configparser.ConfigParser()
-config.read('tapo.ini')
+config.read(config_path)
+
 
 tapo_username = config['DEFAULT']['TAPO_USERNAME']
 tapo_password = config['DEFAULT']['TAPO_PASSWORD']
