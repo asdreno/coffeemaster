@@ -21,10 +21,11 @@ except IOError as e:
     print(f"Error opening configuration file: {e}")
     raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
-
 tapo_username = config['DEFAULT']['TAPO_USERNAME']
 tapo_password = config['DEFAULT']['TAPO_PASSWORD']
 ip_address = config['DEFAULT']['IP_ADDRESS']
+print("IP:", ip_address)
+print("Account:", tapo_username)
 
 async def control_tapo():
     client = ApiClient(tapo_username, tapo_password)
