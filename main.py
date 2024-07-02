@@ -69,6 +69,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except Exception as e:
-        print(e)
+        print(f"Error running main: {e}")
+        traceback.print_exc()
     finally:
         GPIO.cleanup()
