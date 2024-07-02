@@ -13,12 +13,13 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 # Construct the absolute path to the tapo.config file
 config_path = os.path.join(script_dir, 'tapo.ini')
 
-if not os.path.exists(config_path):
+try:
+    with open(config_path) as f:
+        config.read_file(f)
+        print(f"Configuration file {config_path} read successfully")
+except IOError as e:
+    print(f"Error opening configuration file: {e}")
     raise FileNotFoundError(f"Configuration file not found: {config_path}")
-
-# Read configuration from tapo.config
-config = configparser.ConfigParser()
-config.read(config_path)
 
 
 tapo_username = config['DEFAULT']['TAPO_USERNAME']
