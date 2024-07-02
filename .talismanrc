@@ -1,0 +1,8 @@
+fileignoreconfig:
+- filename: tapo.config
+  checksum: 5b9b3ab1ff02938a2eef16abd599b5f70b0a03e1c11a7d431f9476081d694121
+- filename: main.py
+  checksum: 44ebbe9eb7fc6c2dccb3216d122492dbc1404bddd7ed9bbb11639ed0b161069f
+- filename: pn532/pn532.py
+  checksum: a2b82b955f34c5d77b854496ea7d1811dd06d26cbd28eaab2f570b1a04d9422c
+version: ""
