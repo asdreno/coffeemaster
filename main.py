@@ -9,7 +9,7 @@ from pn532 import PN532_SPI
 
 # Read configuration from tapo.config
 config = configparser.ConfigParser()
-config.read('tapo.config')
+config.read('tapo.ini')
 
 tapo_username = config['DEFAULT']['TAPO_USERNAME']
 tapo_password = config['DEFAULT']['TAPO_PASSWORD']
