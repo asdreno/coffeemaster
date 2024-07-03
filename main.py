@@ -164,7 +164,7 @@ async def main():
             logging.info('Adding new card to whitelist...')
             whitelist.add(uid_hex)
             save_whitelist(whitelist)
-            flash_led('ACT', times=5, duration=0.1)
+            flash_led('PWR', times=10, duration=0.1)
             master_mode = False
             logging.info('New card added successfully!')
         elif uid_hex == master_card_uid:
