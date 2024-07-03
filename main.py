@@ -151,7 +151,7 @@ async def main():
 
 async def flash_master_mode(stop_event):
     while not stop_event.is_set():
-        flash_led('ACT', times=1, duration=0.5)
+        flash_led('PWR', times=1, duration=0.5)
         await asyncio.sleep(1)
 
 if __name__ == "__main__":
