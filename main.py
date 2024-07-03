@@ -6,6 +6,7 @@ from tapo import ApiClient
 from pn532 import PN532_SPI
 import time
 import logging
+from logging.handlers import RotatingFileHandler
 import csv
 
 # Read configuration from tapo.ini
@@ -44,12 +45,13 @@ def save_whitelist(whitelist):
 # Initialize whitelist
 whitelist = load_whitelist()
 
-# Set up logging
+# Set up logging with rotation
+log_handler = RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(message)s',
     handlers=[
-        logging.FileHandler(log_file),
+        log_handler,
         logging.StreamHandler()
     ]
 )
