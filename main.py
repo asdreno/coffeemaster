@@ -2,7 +2,7 @@ import asyncio
 import os
 import configparser
 from datetime import datetime
-from tapo import ApiClient
+from tapo import ApiClient, TapoException
 from pn532 import PN532_SPI
 import time
 
@@ -41,14 +41,18 @@ def save_whitelist(whitelist):
 whitelist = load_whitelist()
 
 async def control_tapo(turn_on=True):
-    client = ApiClient(tapo_username, tapo_password)
-    device = await client.p110(ip_address)
-    if turn_on:
-        print("Turning device on...")
-        await device.on()
-    else:
-        print("Turning device off...")
-        await device.off()
+    try:
+        client = ApiClient(tapo_username, tapo_password)
+        device = await asyncio.wait_for(client.p110(ip_address), timeout=5)
+        if turn_on:
+            print("Turning device on...")
+            await device.on()
+        else:
+            print("Turning device off...")
+            await device.off()
+    except (asyncio.TimeoutError, TapoException) as e:
+        print(f"Failed to connect to the Tapo device: {e}")
+        flash_led('PWR', times=5, duration=0.2)
 
 def setup_nfc():
     pn532 = PN532_SPI(debug=False, reset=20, cs=4)
@@ -91,6 +95,7 @@ async def main():
     
     master_mode = False
     master_mode_start = None
+    master_mode_event = asyncio.Event()
 
     # Try to turn off the plug initially
     try:
@@ -107,6 +112,7 @@ async def main():
             # If in master mode, check if it should time out
             if master_mode and (datetime.now() - master_mode_start).total_seconds() > 10:
                 master_mode = False
+                master_mode_event.set()  # Signal to stop master mode flashing
                 print('Master mode timed out.')
             continue
 
@@ -119,12 +125,14 @@ async def main():
             save_whitelist(whitelist)
             flash_led('ACT', times=5, duration=0.1)
             master_mode = False
+            master_mode_event.set()  # Signal to stop master mode flashing
             print('New card added successfully!')
         elif uid_hex == master_card_uid:
             print('Master card detected. Entering master mode...')
             master_mode = True
             master_mode_start = datetime.now()
-            asyncio.create_task(flash_master_mode())
+            master_mode_event.clear()  # Clear the event to start master mode flashing
+            asyncio.create_task(flash_master_mode(master_mode_event))
         elif uid_hex in whitelist:
             print('Whitelisted card detected. Controlling Tapo device...')
             flash_led('ACT', times=2, duration=0.1)
@@ -141,8 +149,8 @@ async def main():
             print('Card not recognized.')
             flash_led('PWR', times=2, duration=0.2)
 
-async def flash_master_mode():
-    while master_mode:
+async def flash_master_mode(stop_event):
+    while not stop_event.is_set():
         flash_led('ACT', times=1, duration=0.5)
         await asyncio.sleep(1)
 
