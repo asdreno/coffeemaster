@@ -5,6 +5,8 @@ from datetime import datetime
 from tapo import ApiClient
 from pn532 import PN532_SPI
 import time
+import logging
+import csv
 
 # Read configuration from tapo.ini
 config = configparser.ConfigParser()
@@ -23,6 +25,8 @@ master_card_uid = config['DEFAULT']['MASTER_CARD_UID']
 
 # Whitelist file
 whitelist_file = 'whitelist.txt'
+log_file = 'card_scans.log'
+csv_file = 'card_scans.csv'
 
 # Function to load whitelist
 def load_whitelist():
@@ -39,6 +43,33 @@ def save_whitelist(whitelist):
 
 # Initialize whitelist
 whitelist = load_whitelist()
+
+# Set up logging
+logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s %(message)s')
+
+# Function to update CSV file with scan counts
+def update_csv(uid):
+    if not os.path.exists(csv_file):
+        with open(csv_file, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['UID', 'Count'])
+    
+    rows = []
+    found = False
+    with open(csv_file, mode='r', newline='') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if row[0] == uid:
+                row[1] = str(int(row[1]) + 1)
+                found = True
+            rows.append(row)
+    
+    if not found:
+        rows.append([uid, '1'])
+    
+    with open(csv_file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(rows)
 
 async def control_tapo(turn_on=True):
     try:
@@ -118,6 +149,8 @@ async def main():
 
         uid_hex = ''.join([hex(i)[2:].zfill(2) for i in uid])
         print('\nFound card with UID:', uid_hex)
+        logging.info(f'Card scanned: {uid_hex}')
+        update_csv(uid_hex)
 
         if master_mode:
             print('\nAdding new card to whitelist...')
