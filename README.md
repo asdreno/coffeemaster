@@ -2,6 +2,11 @@
 
 CoffeeMaster is an NFC-based system to control a Tapo smart plug using a Raspberry Pi. This system allows whitelisted NFC cards to turn on the smart plug for a configurable amount of time.
 
+Hardware: 
+1. Raspberry PI 3b+
+2. https://www.waveshare.com/wiki/PN532_NFC_HAT
+3. Tapo Smart WLAN P110 https://www.amazon.de/Tapo-P110-Energieverbrauchskontrolle-funktioniert-Sprachsteuerung/dp/B09BFT7NZJ
+
 ## Installation
 
 1. **Install required packages:**
