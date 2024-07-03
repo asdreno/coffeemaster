@@ -2,7 +2,7 @@ import asyncio
 import os
 import configparser
 from datetime import datetime
-from tapo import ApiClient, TapoException
+from tapo import ApiClient
 from pn532 import PN532_SPI
 import time
 
@@ -50,7 +50,7 @@ async def control_tapo(turn_on=True):
         else:
             print("Turning device off...")
             await device.off()
-    except (asyncio.TimeoutError, TapoException) as e:
+    except (asyncio.TimeoutError, Exception) as e:
         print(f"Failed to connect to the Tapo device: {e}")
         flash_led('PWR', times=5, duration=0.2)
 
