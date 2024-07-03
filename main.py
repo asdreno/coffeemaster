@@ -45,7 +45,14 @@ def save_whitelist(whitelist):
 whitelist = load_whitelist()
 
 # Set up logging
-logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(message)s',
+    handlers=[
+        logging.FileHandler(log_file),
+        logging.StreamHandler()
+    ]
+)
 
 # Function to update CSV file with scan counts
 def update_csv(uid):
@@ -76,19 +83,19 @@ async def control_tapo(turn_on=True):
         client = ApiClient(tapo_username, tapo_password)
         device = await asyncio.wait_for(client.p110(ip_address), timeout=5)
         if turn_on:
-            print("Turning device on...")
+            logging.info("Turning device on...")
             await device.on()
         else:
-            print("Turning device off...")
+            logging.info("Turning device off...")
             await device.off()
     except (asyncio.TimeoutError, Exception) as e:
-        print(f"Failed to connect to the Tapo device: {e}")
+        logging.error(f"Failed to connect to the Tapo device: {e}")
         flash_led('PWR', times=5, duration=0.2)
 
 def setup_nfc():
     pn532 = PN532_SPI(debug=False, reset=20, cs=4)
     ic, ver, rev, support = pn532.get_firmware_version()
-    print('Found PN532 with firmware version: {0}.{1}'.format(ver, rev))
+    logging.info(f'Found PN532 with firmware version: {ver}.{rev}')
 
     # Configure PN532 to communicate with MiFare cards
     pn532.SAM_configuration()
@@ -100,7 +107,7 @@ def flash_led(led, times=3, duration=0.2):
     led_brightness_path = f'/sys/class/leds/{led}/brightness'
 
     if not os.path.exists(led_trigger_path) or not os.path.exists(led_brightness_path):
-        print(f"LED paths for {led} do not exist, cannot flash LED.")
+        logging.error(f"LED paths for {led} do not exist, cannot flash LED.")
         return
 
     # Set LED control to none
@@ -122,7 +129,7 @@ def flash_led(led, times=3, duration=0.2):
 
 async def main():
     pn532 = setup_nfc()
-    print('\nWaiting for RFID/NFC card...')
+    logging.info('Waiting for RFID/NFC card...')
     
     master_mode = False
     master_mode_start = None
@@ -132,7 +139,7 @@ async def main():
     try:
         await control_tapo(turn_on=False)
     except Exception as e:
-        print(f"\nFailed to connect to the Tapo device initially: {e}")
+        logging.error(f"Failed to connect to the Tapo device initially: {e}")
 
     while True:
         # Check if a card is available to read
@@ -144,46 +151,45 @@ async def main():
             if master_mode and (datetime.now() - master_mode_start).total_seconds() > 10:
                 master_mode = False
                 master_mode_event.set()  # Signal to stop master mode flashing
-                print('\nMaster mode timed out.')
+                logging.info('Master mode timed out.')
             continue
 
         uid_hex = ''.join([hex(i)[2:].zfill(2) for i in uid])
-        print('\nFound card with UID:', uid_hex)
-        logging.info(f'Card scanned: {uid_hex}')
+        logging.info(f'Found card with UID: {uid_hex}')
         update_csv(uid_hex)
 
         if master_mode:
-            print('\nAdding new card to whitelist...')
+            logging.info('Adding new card to whitelist...')
             whitelist.add(uid_hex)
             save_whitelist(whitelist)
             flash_led('ACT', times=5, duration=0.1)
             master_mode = False
-            print('\nNew card added successfully!')
+            logging.info('New card added successfully!')
         elif uid_hex == master_card_uid:
-            print('\nMaster card detected. Entering master mode...')
+            logging.info('Master card detected. Entering master mode...')
             master_mode = True
             flash_led('PWR', times=5, duration=0.5)
             master_mode_start = datetime.now()
         elif uid_hex in whitelist:
-            print('\nWhitelisted card detected. Controlling Tapo device...')
+            logging.info('Whitelisted card detected. Controlling Tapo device...')
             flash_led('ACT', times=2, duration=0.1)
             try:
                 await control_tapo()
             except Exception as e:
-                print(f"\nFailed to control the Tapo device: {e}")
+                logging.error(f"Failed to control the Tapo device: {e}")
             await asyncio.sleep(on_time)
             try:
                 await control_tapo(turn_on=False)
             except Exception as e:
-                print(f"\nFailed to control the Tapo device: {e}")
+                logging.error(f"Failed to control the Tapo device: {e}")
         else:
-            print('\nCard not recognized.')
+            logging.info('Card not recognized.')
             flash_led('PWR', times=2, duration=0.2)
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except Exception as e:
-        print(e)
+        logging.error(e)
     finally:
         GPIO.cleanup()
