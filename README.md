@@ -6,7 +6,8 @@ Hardware:
 1. Raspberry PI 3b+
 2. PN532 NFC Shield: https://www.waveshare.com/wiki/PN532_NFC_HAT
 3. Tapo Smart WLAN P110 https://www.amazon.de/Tapo-P110-Energieverbrauchskontrolle-funktioniert-Sprachsteuerung/dp/B09BFT7NZJ
-
+4. Case File found in the stl folder
+   
 ## Installation
 
 1. **Install required packages:**
