@@ -91,7 +91,7 @@ def flash_led(led, times=3, duration=0.2):
 
 async def main():
     pn532 = setup_nfc()
-    print('Waiting for RFID/NFC card...')
+    print('\nWaiting for RFID/NFC card...')
     
     master_mode = False
     master_mode_start = None
@@ -101,58 +101,51 @@ async def main():
     try:
         await control_tapo(turn_on=False)
     except Exception as e:
-        print(f"Failed to connect to the Tapo device initially: {e}")
+        print(f"\nFailed to connect to the Tapo device initially: {e}")
 
     while True:
         # Check if a card is available to read
         uid = pn532.read_passive_target(timeout=0.5)
-        print('.', end="")
+
         # Try again if no card is available.
         if uid is None:
             # If in master mode, check if it should time out
             if master_mode and (datetime.now() - master_mode_start).total_seconds() > 10:
                 master_mode = False
                 master_mode_event.set()  # Signal to stop master mode flashing
-                print('Master mode timed out.')
+                print('\nMaster mode timed out.')
             continue
 
         uid_hex = ''.join([hex(i)[2:].zfill(2) for i in uid])
-        print('Found card with UID:', uid_hex)
+        print('\nFound card with UID:', uid_hex)
 
         if master_mode:
-            print('Adding new card to whitelist...')
+            print('\nAdding new card to whitelist...')
             whitelist.add(uid_hex)
             save_whitelist(whitelist)
             flash_led('ACT', times=5, duration=0.1)
             master_mode = False
-            master_mode_event.set()  # Signal to stop master mode flashing
-            print('New card added successfully!')
+            print('\nNew card added successfully!')
         elif uid_hex == master_card_uid:
-            print('Master card detected. Entering master mode...')
+            print('\nMaster card detected. Entering master mode...')
             master_mode = True
+            flash_led('PWR', times=5, duration=0.5)
             master_mode_start = datetime.now()
-            master_mode_event.clear()  # Clear the event to start master mode flashing
-            asyncio.create_task(flash_master_mode(master_mode_event))
         elif uid_hex in whitelist:
-            print('Whitelisted card detected. Controlling Tapo device...')
+            print('\nWhitelisted card detected. Controlling Tapo device...')
             flash_led('ACT', times=2, duration=0.1)
             try:
                 await control_tapo()
             except Exception as e:
-                print(f"Failed to control the Tapo device: {e}")
+                print(f"\nFailed to control the Tapo device: {e}")
             await asyncio.sleep(on_time)
             try:
                 await control_tapo(turn_on=False)
             except Exception as e:
-                print(f"Failed to control the Tapo device: {e}")
+                print(f"\nFailed to control the Tapo device: {e}")
         else:
-            print('Card not recognized.')
+            print('\nCard not recognized.')
             flash_led('PWR', times=2, duration=0.2)
-
-async def flash_master_mode(stop_event):
-    while not stop_event.is_set():
-        flash_led('PWR', times=1, duration=0.5)
-        await asyncio.sleep(1)
 
 if __name__ == "__main__":
     try:
