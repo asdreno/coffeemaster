@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/styles.css" rel="stylesheet">
+    <title>Coffee Master UI - Logs</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="mt-5">Service Logs</h1>
+      <pre id="log_output"></pre>
+    </div>
+    <script>
+      var socket = io.connect('http://' + document.domain + ':' + location.port);
+      var logOutput = document.getElementById('log_output');
+
+      socket.on('log_update', function(data) {
+        logOutput.textContent += data.log + '\n';
+        logOutput.scrollTop = logOutput.scrollHeight;
+      });
+    </script>
+  </body>
+</html>

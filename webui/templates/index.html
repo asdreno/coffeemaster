@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/styles.css" rel="stylesheet">
+    <title>Coffee Master UI</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="mt-5">Coffee Master UI</h1>
+      <form action="/restart-service" method="post">
+        <button type="submit" class="btn btn-primary">Restart Service</button>
+      </form>
+      <hr>
+      <a href="/download-csv" class="btn btn-success">Download CSV</a>
+      <hr>
+      <form action="/upload-whitelist" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="whitelistFile">Upload Whitelist File</label>
+          <input type="file" class="form-control-file" id="whitelistFile" name="whitelist_file">
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+      </form>
+      <hr>
+      <a href="/logs" class="btn btn-info">View Logs</a>
+      <hr>
+      <h2>Current Whitelist</h2>
+      <pre>{{ whitelist_content }}</pre>
+    </div>
+  </body>
+</html>

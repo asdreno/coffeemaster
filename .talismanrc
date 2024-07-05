@@ -5,4 +5,6 @@ fileignoreconfig:
   checksum: 44ebbe9eb7fc6c2dccb3216d122492dbc1404bddd7ed9bbb11639ed0b161069f
 - filename: pn532/pn532.py
   checksum: a2b82b955f34c5d77b854496ea7d1811dd06d26cbd28eaab2f570b1a04d9422c
+- filename: webui/README.md
+  checksum: 358d0150b5b277d743fb0f5f8c992ed0cb1f17d9ac888d70fa7bf47385750fc9
 version: ""
