@@ -22,7 +22,7 @@ tapo_username = config['DEFAULT']['TAPO_USERNAME']
 tapo_password = config['DEFAULT']['TAPO_PASSWORD']
 ip_address = config['DEFAULT']['IP_ADDRESS']
 on_time = int(config['DEFAULT']['ON_TIME'])
-master_card_uid = config['DEFAULT']['MASTER_CARD_UID']
+master_card_uids = config['DEFAULT']['MASTER_CARD_UIDS'].split(',')
 
 # Whitelist file
 whitelist_file = 'whitelist.txt'
@@ -167,7 +167,7 @@ async def main():
             flash_led('PWR', times=10, duration=0.1)
             master_mode = False
             logging.info('New card added successfully!')
-        elif uid_hex == master_card_uid:
+        elif uid_hex in master_card_uids:
             logging.info('Master card detected. Entering master mode...')
             master_mode = True
             flash_led('PWR', times=5, duration=0.5)
@@ -195,4 +195,3 @@ if __name__ == "__main__":
         logging.error(e)
     finally:
         GPIO.cleanup()
-
