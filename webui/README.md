@@ -21,31 +21,39 @@ sudo apt upgrade -y
 
 ### Step 2: Install Necessary Packages
 
-Install Python, pip, virtual environment, Nginx, and Git:
+Install Python, pip, Nginx, and Git:
 
 ```
-sudo apt install python3 python3-pip python3-venv nginx git -y
+sudo apt install python3 python3-pip nginx git -y
 ```
 
-### Step 3: Set Up the Python Environment
+### Step 3: Install Python Packages Globally
 
-1. **Create a Virtual Environment**:
-
-```
-python3 -m venv coffee_master_ui_env
-source coffee_master_ui_env/bin/activate
-```
-
-2. **Install Flask and Other Packages**:
+Install Flask, Flask-SocketIO, and Eventlet globally:
 
 ```
-pip install flask flask-socketio eventlet
+pip3 install flask flask-socketio eventlet
 ```
 
+### Step 4: Project Directory Structure
 
-### Step 4: Configuration File
+Ensure your project directory has the following structure:
 
-Modify `webui.ini` file with the following content:
+```
+coffee_master_ui/
+├── app.py
+├── static/
+│   └── styles.css
+├── templates/
+│   ├── index.html
+│   └── logs.html
+├── webui.ini
+├── wsgi.py
+```
+
+### Step 5: Configuration File
+
+Create a `webui.ini` file with the following content:
 
 ```
 [Settings]
@@ -56,7 +64,7 @@ service_name = your_service_name
 
 Replace `/path/to/card_log.csv`, `/path/to/whitelist.txt`, and `your_service_name` with appropriate values.
 
-### Step 5: Configure Nginx
+### Step 6: Configure Nginx
 
 1. **Create a new Nginx configuration file**:
 
@@ -73,19 +81,16 @@ server {
 
     location / {
         include proxy_params;
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_pass http://unix:/home/espresso/coffeemaster/webui/coffee_master_ui.sock;
     }
 
     location /static {
-        alias /path/to/coffee_master_ui/static;
+        alias /home/espresso/coffeemaster/webui/static;
     }
 }
 ```
 
-Replace `/path/to/coffee_master_ui` with the actual path to your project directory.
+Replace `/home/espresso/coffeemaster/webui` with the actual path to your project directory.
 
 3. **Enable the Nginx configuration**:
 
@@ -95,7 +100,7 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
-### Step 6: Ensure the Service Runs on Boot
+### Step 7: Ensure the Service Runs on Boot
 
 1. **Create a systemd service file**:
 
@@ -111,23 +116,38 @@ Description=Gunicorn instance to serve Coffee Master UI
 After=network.target
 
 [Service]
-User=pi
+User=espresso
 Group=www-data
-WorkingDirectory=/path/to/coffee_master_ui
-Environment="PATH=/path/to/coffee_master_ui/coffee_master_ui_env/bin"
-ExecStart=/path/to/coffee_master_ui/coffee_master_ui_env/bin/gunicorn --workers 3 --bind unix:coffee_master_ui.sock -m 007 wsgi:app
+WorkingDirectory=/home/espresso/coffeemaster/webui
+ExecStart=/usr/local/bin/gunicorn --workers 3 --bind unix:/home/espresso/coffeemaster/webui/coffee_master_ui.sock wsgi:app
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=gunicorn_coffee_master_ui
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Replace `/path/to/coffee_master_ui` and `coffee_master_ui_env` with the actual paths.
+Replace `/home/espresso/coffeemaster/webui` with the actual path to your project directory.
 
-3. **Enable and start the service**:
+3. **Reload Systemd and Restart the Service**:
 
 ```
-sudo systemctl start coffee_master_ui
+sudo systemctl daemon-reload
+sudo systemctl restart coffee_master_ui
 sudo systemctl enable coffee_master_ui
+```
+
+### Step 8: Set Correct Permissions
+
+Ensure the directories and the socket file have the correct permissions:
+
+```
+sudo chown -R espresso:www-data /home/espresso
+sudo chmod 755 /home/espresso
+sudo chmod -R 775 /home/espresso/coffeemaster
+sudo chmod -R 775 /home/espresso/coffeemaster/webui
+sudo chmod 770 /home/espresso/coffeemaster/webui/coffee_master_ui.sock
 ```
 
 ### Final Steps
@@ -140,7 +160,7 @@ sudo reboot
 
 2. **Access the Web Interface**:
 
-Open a web browser and navigate to your Raspberry Pi's IP address to access the Coffee Master UI.
+Open a web browser and navigate to your Raspberry Pi’s IP address to access the Coffee Master UI.
 
 ## Features
 
