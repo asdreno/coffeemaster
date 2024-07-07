@@ -30,11 +30,11 @@ def restart_service():
 def download_csv():
     return send_file(CSV_PATH, as_attachment=True)
 
-@app.route('/upload-whitelist', methods=['POST'])
-def upload_whitelist():
-    file = request.files['whitelist_file']
-    if file:
-        file.save(WHITELIST_PATH)
+@app.route('/update-whitelist', methods=['POST'])
+def update_whitelist():
+    new_content = request.form['whitelist_content']
+    with open(WHITELIST_PATH, 'w') as file:
+        file.write(new_content)
     return redirect(url_for('index'))
 
 @app.route('/logs')
