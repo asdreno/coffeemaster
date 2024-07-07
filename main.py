@@ -143,9 +143,17 @@ async def main():
     except Exception as e:
         logging.error(f"Failed to connect to the Tapo device initially: {e}")
 
+    loop_counter = 0
+
     while True:
         # Check if a card is available to read
         uid = pn532.read_passive_target(timeout=0.5)
+
+        # Increment loop counter and flash PWR LED every 10 loops
+        loop_counter += 1
+        if loop_counter >= 10:
+            flash_led('PWR', times=1, duration=0.1)
+            loop_counter = 0
 
         # Try again if no card is available.
         if uid is None:
