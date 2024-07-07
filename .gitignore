@@ -1,2 +1,7 @@
 webui/offee_master_ui.sock
 tapo.ini
+card_scans.csv
+card_scans.log
+pn532/__pycache__/*
+webui/__pycache__/*
+whitelist.txt
