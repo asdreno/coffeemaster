@@ -42,7 +42,7 @@ def logs():
     return render_template('logs.html')
 
 def stream_logs():
-    process = subprocess.Popen(['journalctl', '-u', SERVICE_NAME, '-f'], stdout=subprocess.PIPE)
+    process = subprocess.Popen(['journalctl', '-u', SERVICE_NAME, '-f'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     while True:
         output = process.stdout.readline()
         if output:
