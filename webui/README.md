@@ -89,11 +89,11 @@ Replace `/path/to/coffee_master_ui` with the actual path to your project directo
 
 3. **Enable the Nginx configuration**:
 
-\```
+```
 sudo ln -s /etc/nginx/sites-available/coffee_master_ui /etc/nginx/sites-enabled
 sudo nginx -t
 sudo systemctl restart nginx
-\```
+```
 
 ### Step 6: Ensure the Service Runs on Boot
 
