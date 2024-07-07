@@ -16,18 +16,15 @@
       <hr>
       <a href="/download-csv" class="btn btn-success">Download CSV</a>
       <hr>
-      <form action="/upload-whitelist" method="post" enctype="multipart/form-data">
+      <form action="/update-whitelist" method="post">
         <div class="form-group">
-          <label for="whitelistFile">Upload Whitelist File</label>
-          <input type="file" class="form-control-file" id="whitelistFile" name="whitelist_file">
+          <label for="whitelistContent">Edit Whitelist</label>
+          <textarea class="form-control" id="whitelistContent" name="whitelist_content" rows="10">{{ whitelist_content }}</textarea>
         </div>
-        <button type="submit" class="btn btn-primary">Upload</button>
+        <button type="submit" class="btn btn-primary">Update Whitelist</button>
       </form>
       <hr>
       <a href="/logs" class="btn btn-info">View Logs</a>
-      <hr>
-      <h2>Current Whitelist</h2>
-      <pre>{{ whitelist_content }}</pre>
     </div>
   </body>
 </html>
