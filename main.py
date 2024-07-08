@@ -185,9 +185,9 @@ async def main():
             flash_led('ACT', times=2, duration=0.1)
             try:
                 await control_tapo()
+                await asyncio.sleep(on_time)
             except Exception as e:
                 logging.error(f"Failed to control the Tapo device: {e}")
-            await asyncio.sleep(on_time)
             try:
                 await control_tapo(turn_on=False)
             except Exception as e:
