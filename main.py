@@ -87,12 +87,15 @@ async def control_tapo(turn_on=True):
         if turn_on:
             logging.info("Turning device on...")
             await device.on()
+            return True
         else:
             logging.info("Turning device off...")
             await device.off()
+            return True
     except (asyncio.TimeoutError, Exception) as e:
         logging.error(f"Failed to connect to the Tapo device: {e}")
         flash_led('PWR', times=5, duration=0.1)
+        return False
 
 def setup_nfc():
     pn532 = PN532_SPI(debug=False, reset=20, cs=4)
@@ -184,12 +187,10 @@ async def main():
             logging.info('Whitelisted card detected. Controlling Tapo device...')
             flash_led('ACT', times=2, duration=0.1)
             try:
-                await control_tapo()
-                await asyncio.sleep(on_time)
-            except Exception as e:
-                logging.error(f"Failed to control the Tapo device: {e}")
-            try:
-                await control_tapo(turn_on=False)
+                success = await control_tapo()
+                if success:
+                    await asyncio.sleep(on_time)
+                    await control_tapo(turn_on=False)
             except Exception as e:
                 logging.error(f"Failed to control the Tapo device: {e}")
         else:
