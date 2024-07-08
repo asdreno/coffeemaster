@@ -83,7 +83,7 @@ def update_csv(uid):
 async def control_tapo(turn_on=True):
     try:
         client = ApiClient(tapo_username, tapo_password)
-        device = await asyncio.wait_for(client.p110(ip_address), timeout=5)
+        device = await asyncio.wait_for(client.p110(ip_address), timeout=3)
         if turn_on:
             logging.info("Turning device on...")
             await device.on()
@@ -92,7 +92,7 @@ async def control_tapo(turn_on=True):
             await device.off()
     except (asyncio.TimeoutError, Exception) as e:
         logging.error(f"Failed to connect to the Tapo device: {e}")
-        flash_led('PWR', times=5, duration=0.2)
+        flash_led('PWR', times=5, duration=0.1)
 
 def setup_nfc():
     pn532 = PN532_SPI(debug=False, reset=20, cs=4)
