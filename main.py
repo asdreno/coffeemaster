@@ -149,53 +149,58 @@ async def main():
     loop_counter = 0
 
     while True:
-        # Check if a card is available to read
-        uid = pn532.read_passive_target(timeout=0.5)
-
-        # Increment loop counter and flash PWR LED every 10 loops
-        loop_counter += 1
-        if loop_counter >= 10:
-            flash_led('PWR', times=1, duration=0.1)
-            loop_counter = 0
-
-        # Try again if no card is available.
-        if uid is None:
-            # If in master mode, check if it should time out
-            if master_mode and (datetime.now() - master_mode_start).total_seconds() > 10:
+        try:
+            # Check if a card is available to read
+            uid = pn532.read_passive_target(timeout=0.5)
+    
+            # Increment loop counter and flash PWR LED every 10 loops
+            loop_counter += 1
+            if loop_counter >= 10:
+                flash_led('PWR', times=1, duration=0.1)
+                loop_counter = 0
+    
+            # Try again if no card is available.
+            if uid is None:
+                # If in master mode, check if it should time out
+                if master_mode and (datetime.now() - master_mode_start).total_seconds() > 10:
+                    master_mode = False
+                    master_mode_event.set()  # Signal to stop master mode flashing
+                    logging.info('Master mode timed out.')
+                continue
+    
+            uid_hex = ''.join([hex(i)[2:].zfill(2) for i in uid])
+            logging.info(f'Found card with UID: {uid_hex}')
+            update_csv(uid_hex)
+    
+            if master_mode:
+                logging.info('Adding new card to whitelist...')
+                whitelist.add(uid_hex)
+                save_whitelist(whitelist)
+                flash_led('PWR', times=10, duration=0.1)
                 master_mode = False
-                master_mode_event.set()  # Signal to stop master mode flashing
-                logging.info('Master mode timed out.')
-            continue
-
-        uid_hex = ''.join([hex(i)[2:].zfill(2) for i in uid])
-        logging.info(f'Found card with UID: {uid_hex}')
-        update_csv(uid_hex)
-
-        if master_mode:
-            logging.info('Adding new card to whitelist...')
-            whitelist.add(uid_hex)
-            save_whitelist(whitelist)
-            flash_led('PWR', times=10, duration=0.1)
-            master_mode = False
-            logging.info('New card added successfully!')
-        elif uid_hex in master_card_uids:
-            logging.info('Master card detected. Entering master mode...')
-            master_mode = True
-            flash_led('PWR', times=5, duration=0.5)
-            master_mode_start = datetime.now()
-        elif uid_hex in whitelist:
-            logging.info('Whitelisted card detected. Controlling Tapo device...')
-            flash_led('ACT', times=2, duration=0.1)
-            try:
-                success = await control_tapo()
-                if success:
-                    await asyncio.sleep(on_time)
-                    await control_tapo(turn_on=False)
-            except Exception as e:
-                logging.error(f"Failed to control the Tapo device: {e}")
-        else:
-            logging.info('Card not recognized.')
-            flash_led('PWR', times=2, duration=0.2)
+                logging.info('New card added successfully!')
+            elif uid_hex in master_card_uids:
+                logging.info('Master card detected. Entering master mode...')
+                master_mode = True
+                flash_led('PWR', times=5, duration=0.5)
+                master_mode_start = datetime.now()
+            elif uid_hex in whitelist:
+                logging.info('Whitelisted card detected. Controlling Tapo device...')
+                flash_led('ACT', times=2, duration=0.1)
+                try:
+                    success = await control_tapo()
+                    if success:
+                        await asyncio.sleep(on_time)
+                        await control_tapo(turn_on=False)
+                except Exception as e:
+                    logging.error(f"Failed to control the Tapo device: {e}")
+            else:
+                logging.info('Card not recognized.')
+                flash_led('PWR', times=2, duration=0.2)
+        except Exception as e:
+            logging.error(f"Exception in main loop: {e}")
+            flash_led('PWR', times=5, duration=0.1)
+            await asyncio.sleep(1)  # Add a small delay before continuing
 
 if __name__ == "__main__":
     try:
